@@ -53,6 +53,39 @@ contract MerkleTree {
             }
             index /= 2;
         }
-        return hash == proof;
+        return hash == root;
+    }
+
+    function findHashIndex(bytes32 hash) public view returns(uint) {
+        for (uint i = 0; i < transactions.length; i++) {
+            if (hashes[i] == hash) {
+                return i;
+            }
+        }
+        revert();
+    }
+
+    function verify2(string memory transaction)
+        public view returns(bool)
+    {
+        bytes32 root = hashes[hashes.length - 1];
+        uint levelLength = transactions.length;
+        uint totalOffset = levelLength;
+
+        bytes32 hash = keccak256(abi.encodePacked(transaction));
+        uint index = findHashIndex(hash);
+        uint indexInLevel = index;
+        while (index != hashes.length) {
+            if (index % 2 == 0) {
+                hash = keccak256(abi.encodePacked(hash, hashes[index + 1]));
+            } else {
+                hash = keccak256(abi.encodePacked(hashes[index - 1], hash));
+            }
+            indexInLevel /= 2;
+            index = totalOffset + indexInLevel;
+            levelLength /= 2;
+            totalOffset += levelLength;
+        }
+        return hash == root;
     }
 }
