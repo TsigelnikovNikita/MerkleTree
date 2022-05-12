@@ -6,10 +6,10 @@ import "hardhat/console.sol";
 contract MerkleTree {
     bytes32[] public hashes;
     string[4] transactions = [
-        "Tx1: Sherlock -> John",
-        "Tx1: John -> Sherlock",
-        "Tx1: John -> Mary",
-        "Tx1: Mary -> Sherlock"
+        "Tx1: Sherlock -> John", // 0x90468595c91ed4200be8b123bbbe77b1fb5b30eadae281a4f5080d2bc1991b3b
+        "Tx2: John -> Sherlock", // 0x0e43ce31529c0636853f9279d28101a2e1827641a7fb0dc10d4f0a35cfe9328c
+        "Tx3: John -> Mary",     // 0xbd38068ba9ae7b93f04d731eea79bde24ed281775355581ad179afee4e310e49
+        "Tx4: Mary -> Sherlock"  // 0x9f952de64c66104d2e1f24801cfd115637e74247011e0a48b3990b70122e7a05
     ];
 
     constructor() {
@@ -25,7 +25,7 @@ contract MerkleTree {
                 hashes.push(
                     keccak256(
                         abi.encodePacked(
-                        transactions[offset + i], transactions[offset + i + 1]
+                        hashes[offset + i], hashes[offset + i + 1]
                         )
                     )
                 );
@@ -56,35 +56,25 @@ contract MerkleTree {
         return hash == root;
     }
 
-    function findHashIndex(bytes32 hash) public view returns(uint) {
-        for (uint i = 0; i < transactions.length; i++) {
-            if (hashes[i] == hash) {
-                return i;
-            }
-        }
-        revert();
-    }
-
-    function verify2(string memory transaction)
+    function verify2(string memory transaction, uint index)
         public view returns(bool)
     {
         bytes32 root = hashes[hashes.length - 1];
         uint levelLength = transactions.length;
-        uint totalOffset = levelLength;
+        uint totalOffset = 0;
+        uint indexInLevel = index;
 
         bytes32 hash = keccak256(abi.encodePacked(transaction));
-        uint index = findHashIndex(hash);
-        uint indexInLevel = index;
-        while (index != hashes.length) {
+        while (index != (hashes.length - 1)) {
             if (index % 2 == 0) {
                 hash = keccak256(abi.encodePacked(hash, hashes[index + 1]));
             } else {
                 hash = keccak256(abi.encodePacked(hashes[index - 1], hash));
             }
+            totalOffset += levelLength;
             indexInLevel /= 2;
             index = totalOffset + indexInLevel;
             levelLength /= 2;
-            totalOffset += levelLength;
         }
         return hash == root;
     }
