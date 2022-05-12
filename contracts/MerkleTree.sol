@@ -5,19 +5,15 @@ import "hardhat/console.sol";
 
 contract MerkleTree {
     bytes32[] public hashes;
-    string[4] transactions = [
-        "Tx1: Sherlock -> John", // 0x90468595c91ed4200be8b123bbbe77b1fb5b30eadae281a4f5080d2bc1991b3b
-        "Tx2: John -> Sherlock", // 0x0e43ce31529c0636853f9279d28101a2e1827641a7fb0dc10d4f0a35cfe9328c
-        "Tx3: John -> Mary",     // 0xbd38068ba9ae7b93f04d731eea79bde24ed281775355581ad179afee4e310e49
-        "Tx4: Mary -> Sherlock"  // 0x9f952de64c66104d2e1f24801cfd115637e74247011e0a48b3990b70122e7a05
-    ];
+    uint public immutable transactionsCount;
 
-    constructor() {
-        for (uint i = 0; i < transactions.length; i++) {
-            hashes.push(keccak256(abi.encodePacked(transactions[i])));
+    constructor(string[] memory _transactions) {
+        for (uint i = 0; i < _transactions.length; i++) {
+            hashes.push(keccak256(abi.encodePacked(_transactions[i])));
         }
 
-        uint count = transactions.length;
+        transactionsCount = _transactions.length;
+        uint count = _transactions.length;
         uint offset = 0;
 
         while (count > 0) {
@@ -60,7 +56,7 @@ contract MerkleTree {
         public view returns(bool)
     {
         bytes32 root = hashes[hashes.length - 1];
-        uint levelLength = transactions.length;
+        uint levelLength = transactionsCount;
         uint totalOffset = 0;
         uint indexInLevel = index;
 
