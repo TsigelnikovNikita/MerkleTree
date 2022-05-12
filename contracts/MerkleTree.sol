@@ -14,7 +14,7 @@ contract MerkleTree {
 
     constructor() {
         for (uint i = 0; i < transactions.length; i++) {
-            hashes.push(makeHash(transactions[i]));
+            hashes.push(keccak256(abi.encodePacked(transactions[i])));
         }
 
         uint count = transactions.length;
@@ -35,12 +35,24 @@ contract MerkleTree {
         }
     }
 
-    function encode(string memory input) public pure returns(bytes memory) {
-        return abi.encodePacked(input);
+    function verify(
+        string memory transactoin, 
+        uint index, 
+        bytes32 root, 
+        bytes32[] memory proof
+        )
+        public pure returns(bool)
+    {
+        bytes32 hash = keccak256(abi.encodePacked(transactoin));
+        for (uint i = 0; i < proof.length; i++) {
+            bytes32 element = proof[i];
+            if (index % 2 == 0) {
+                hash = keccak256(abi.encodePacked(hash, element));
+            } else {
+                hash = keccak256(abi.encodePacked(element, hash));
+            }
+            index /= 2;
+        }
+        return hash == proof;
     }
-
-    function makeHash(string memory input) public pure returns (bytes32) {
-        return keccak256(encode(input));
-    }
-
 }
